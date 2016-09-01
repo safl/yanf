@@ -1,0 +1,46 @@
+sudo: required
+language: c
+services:
+  - docker
+
+env:
+  - DIST_NAME: ubuntu
+    DIST_VERS: 16.04
+    DIST_CODE: xenial
+    TAG: liblightnvm
+  - DIST_NAME: ubuntu
+    DIST_VERS: 14.04
+    DIST_CODE: trusty
+    TAG: liblightnvm
+  - DIST_NAME: ubuntu
+    DIST_VERS: 12.04
+    DIST_CODE: precise
+    TAG: liblightnvm
+
+before_install:
+  - gem install package_cloud
+
+  - sed -e "s/__DIST_VERS__/${DIST_VERS}/" ci/DockerFile.ubuntu.tpl > ci/DockerFile.ubuntu
+  - docker pull ${DIST_NAME}:${DIST_VERS}
+  - docker build --rm=true --file=ci/DockerFile.${DIST_NAME} --tag=${DIST_NAME}-${DIST_VERS}:${TAG} .
+  - docker run --name ${TAG} -d -t ${DIST_NAME}-${DIST_VERS}:${TAG} /bin/bash > container.id
+  - docker ps -a
+  - docker exec -t ${TAG} hostname
+  - docker exec -t ${TAG} uname -a
+  - docker exec -t ${TAG} cat /etc/lsb-release
+
+before_script:
+  - echo "Fetching checkpatch"
+  - wget "https://raw.githubusercontent.com/torvalds/linux/master/scripts/checkpatch.pl" -O checkpatch.pl
+  - chmod +x checkpatch.pl
+  - ./checkpatch.pl --no-tree -f src/*.c --terse || true
+
+script:
+  - CONTAINER_ID=$(cat container.id)
+  - docker ps -a
+  - docker exec -t ${TAG} make
+  - docker exec -t ${TAG} make pkg
+  - docker cp ${CONTAINER_ID}:/workdir/build/yanf-0.0.1-Linux.deb .
+  - docker stop "${CONTAINER_ID}"
+  - package_cloud yank slund/liblightnvm/ubuntu/$DIST_CODE yanf-0.0.1_amd64.deb || true
+  - package_cloud push slund/liblightnvm/ubuntu/$DIST_CODE yanf-0.0.1-Linux.deb || true

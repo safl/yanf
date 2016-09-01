@@ -31,3 +31,16 @@
 # Debug files
 *.dSYM/
 *.su
+
+.idea
+bin/*
+build/*
+*.rej
+*.orig
+*~
+/*.patch
+
+*.o
+*.o[ls]
+
+cscope.out
