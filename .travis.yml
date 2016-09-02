@@ -7,15 +7,15 @@ env:
   - DIST_NAME: ubuntu
     DIST_VERS: 16.04
     DIST_CODE: xenial
-    TAG: liblightnvm
+    TAG: yanf
   - DIST_NAME: ubuntu
     DIST_VERS: 14.04
     DIST_CODE: trusty
-    TAG: liblightnvm
+    TAG: yanf
   - DIST_NAME: ubuntu
     DIST_VERS: 12.04
     DIST_CODE: precise
-    TAG: liblightnvm
+    TAG: yanf
 
 before_install:
   - gem install package_cloud
@@ -42,5 +42,5 @@ script:
   - docker exec -t ${TAG} make pkg
   - docker cp ${CONTAINER_ID}:/workdir/build/yanf-0.0.1-Linux.deb .
   - docker stop "${CONTAINER_ID}"
-  - package_cloud yank slund/liblightnvm/ubuntu/$DIST_CODE yanf-0.0.1_amd64.deb || true
-  - package_cloud push slund/liblightnvm/ubuntu/$DIST_CODE yanf-0.0.1-Linux.deb || true
+  - package_cloud yank safl/yanf/ubuntu/$DIST_CODE yanf-0.0.1_amd64.deb || true
+  - package_cloud push safl/yanf/ubuntu/$DIST_CODE yanf-0.0.1-Linux.deb || true
